@@ -246,7 +246,11 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktrace := newValue(s, C.mrb_exc_backtrace(s, value)).Array()
+	rawMrbBacktrace := newValue(s, C.mrb_exc_backtrace(s, value))
+	if rawMrbBacktrace.Type() == TypeNil {
+		rawMrbBacktrace = newValue(s, C.mrb_ary_new(s))
+	}
+	mrbBacktrace := rawMrbBacktrace.Array()
 	for i := 0; i < mrbBacktrace.Len(); i++ {
 		ln, _ := mrbBacktrace.Get(i)
 		backtrace = append(backtrace, ln.String())
